@@ -1,19 +1,6 @@
 version: '3.8'
 
 services:
-  db-account:
-    container_name: database-account
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - 5432:5432
-    networks:
-      - account-network
-
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-alpine
@@ -30,16 +17,10 @@ services:
     build: .
     environment:
       PORT_HTTP: ${PORT_HTTP}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_HOST: db-account
-      POSTGRES_PORT: ${POSTGRES_PORT}
       RABBITMQ_HOST: rabbitmq
     ports:
       - 3001:3001
     depends_on:
-      - db-account
       - rabbitmq
     volumes:
       - .:/home/account-service
