@@ -32,7 +32,7 @@ export class AccountService {
       const result = new AccountModel().fromJSON(created);
 
       await this.rabbitMQService.send('createAccount', {
-        id: result.id,
+        account_id: result.id,
         name: result.name,
         email: result.email,
       });
