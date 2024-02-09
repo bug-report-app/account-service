@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { AccountRepository } from '../database/repositories/account.repository';
 import { AccountModel } from '../domain/models/account.model';
 import { NotFoundException } from '../exceptions/NotFound.exception';
@@ -12,25 +17,30 @@ export class AccountService {
   ) {}
 
   async create(createAccount: any): Promise<any> {
-    const isFound = await this.accountRepository.findByEmail(
-      createAccount.email,
-    );
-
-    if (!!isFound)
-      throw new ConflictException(
-        'There is already a record with the data(s) entered',
+    try {
+      const isFound = await this.accountRepository.findByEmail(
+        createAccount.email,
       );
 
-    const result = await this.accountRepository.create(createAccount);
+      if (!!isFound)
+        throw new ConflictException(
+          'There is already a record with the data(s) entered',
+        );
 
-    const response = await this.rabbitMQService.send('testando', {
-      name: result.name,
-      email: result.email,
-    });
+      const created = await this.accountRepository.create(createAccount);
 
-    console.log('RESULT', response);
+      const result = new AccountModel().fromJSON(created);
 
-    return new AccountModel().fromJSON(result);
+      await this.rabbitMQService.send('createAccount', {
+        id: result.id,
+        name: result.name,
+        email: result.email,
+      });
+
+      return result;
+    } catch (e) {
+      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   async findAll(): Promise<any[]> {
