@@ -8,8 +8,11 @@ export class Account {
   @Prop()
   name: string;
 
-  @Prop()
+  @Prop({ type: String, unique: true })
   email: string;
+
+  @Prop({ type: String })
+  password: string;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account);
